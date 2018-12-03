@@ -1,8 +1,11 @@
 var User = require('../models').User
-var Book = require('../mongomodel/book');
+var Img = require('../models/mongose/img');
 var config = require('../config/database');
 var jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
+var fs = require('fs');
+var QrCode = require('qrcode-reader');
+const jimp = require('jimp');
 
 
 var functions = {
@@ -87,7 +90,65 @@ var functions = {
 
     res.json(books);
   });
+    },
+    //===========================
+    saveimg: function(req, res) {
+        imgPath=__dirname +'/../config/qr.jpg';
+
+        var image = new Img();
+        image.img.data = fs.readFileSync(imgPath);
+        image.img.contentType = 'image/png';
+        image.save(function (err, image) {
+          if (err) throw err;
+    
+          console.error('saved img to mongo');
+        })
+        res.send(true);
     }
+,
+getimg: function(req, res) {
+        Img.findById(req.query.id, function(err, doc) {
+    if (err)
+      res.send(err);
+      dPath=__dirname +'/../config/dd.png'
+      // var base64data = new Buffer(doc.img.data, 'binary').toString('base64');
+      //var originaldata = new Buffer(base64data, 'base64');
+      fs.writeFile(dPath,doc.img.data,function(err) {
+        console.log("done");
+      });
+      res.send(doc.data);
+    })
+},
+     showimg: function(req, res) {
+        Img.findById(req.query.id, function (err, doc) {
+            if (err) send(err);
+           res.contentType(doc.img.contentType);
+            res.send(doc.img.data);
+          });
+    },
+    readimg: function(req, res) {
+        //   const img = jimp.read(fs.readFileSync('C:/Users/BHRX/Desktop/pds_project/qr.png'));
+       
+       var buffer = fs.readFileSync(__dirname +'/../config/qr.jpg');
+       jimp.read(buffer, function(err, image) {
+           if (err) {
+               console.error(err);
+               // TODO handle error
+           }
+           var qr = new QrCode();
+           qr.callback = function(err, value) {
+               if (err) {
+                   console.error(err);
+                   // TODO handle error
+                   res.send(err)
+               }
+               console.log(value.result);
+               console.log(value);
+               res.send(value.result,"||||",value)
+           };
+           qr.decode(image.bitmap);
+       });
+       }
     
 }
 

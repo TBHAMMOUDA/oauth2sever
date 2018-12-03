@@ -3,9 +3,14 @@ var actions = require('../methods/actions');
 var auth = require('../methods/auth');
 var clients = require('../methods/client');
 var oauth2 = require('../methods/oauth2');
-var usercontroller = require('../methods/userController');
 
 var router = express.Router();
+router.post('/saveimg', actions.saveimg);
+router.get('/getimg', actions.getimg);
+
+router.get('/showimg', actions.showimg);
+router.get('/readimg', actions.readimg);
+
 
 router.post('/authenticate', actions.authenticate);
 router.post('/adduser', actions.addNew);
