@@ -69,29 +69,6 @@ var functions = {
             return res.json({success:false, msg: 'No header'});
         }
     },
-    addBook: function(req, res) {
-        var newBook = Book({
-            name: req.body.name,
-            quantity: req.body.quantity,
-            userId: req.user.id
-        });
-        
-        newBook.save(function(err, newBook) {
-            if(err)
-            console.log(err);
-            else
-            res.json({ message: 'Book added to the locker!', data: newBook });
-        })
-    },
-    getBooks: function(req, res) {
-        Book.find({ userId: req.user.id }, function(err, books) {
-    if (err)
-      res.send(err);
-
-    res.json(books);
-  });
-    },
-    //===========================
     saveimg: function(req, res) {
         imgPath=__dirname +'/../config/qr.jpg';
 
