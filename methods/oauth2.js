@@ -1,9 +1,9 @@
 // Load required packages
 var oauth2orize = require('oauth2orize')
-var User = require('../model/user');
-var Client = require('../model/client');
-var Token = require('../model/token');
-var Code = require('../model/code');
+var User = require('../models').User;
+var Client = require('../models').client;
+var Token = require('../models').token;
+var Code = require('../models').code;
 var auth = require('./auth.js');
 var config = require('../config/database');
 var jwt = require('jwt-simple');
@@ -12,72 +12,67 @@ var server = oauth2orize.createServer();
 
 // Register serialialization function
 server.serializeClient(function(client, callback) {
-  return callback(null, client._id);
+  return callback(null, client.id);
 });
 
 // Register deserialization function
 server.deserializeClient(function(id, callback) {
-  Client.findOne({ _id: id }, function (err, client) {
-    if (err) { return callback(err); }
-    return callback(null, client);
-  });
+  Client.findOne({ where: {id: id} })
+  .then(client => { callback(null, client) })
+  .catch(error => { callback(error)});
+  
 });
 
 // Register authorization code grant type
 server.grant(oauth2orize.grant.code(function(client, redirectUri, user, ares, callback) {
   // Create a new authorization code
-  var code = new Code({
+ var code = new Code({
     value: uid(16),
-    clientId: client._id,
+    clientId: client.id,
     redirectUri: redirectUri,
     userId: client.userId
   });
 
   // Save the auth code and check for errors
-  code.save(function(err) {
-    if (err) { return callback(err); }
-
+  code.save().then(() => {
     callback(null, code.value);
-  });
+  }).catch( error =>{
+    callback(error)} )
+
 }));
 
 server.exchange(oauth2orize.exchange.code(function(client, code, redirectUri, callback) {
-  Code.findOne({ value: code }, function (err, authCode) {
-    if (err) { return callback(err); }
-    if (authCode === undefined) { return callback(null, false); }
-    if (client._id.toString() !== authCode.clientId) { return callback(null, false); }
-    if (redirectUri !== authCode.redirectUri) { return callback(null, false); }
-
-    // Delete auth code now that it has been used
-    authCode.remove(function (err) {
-      if(err) { return callback(err); }
-
-      // Create a new access token
-      var token = new Token({
-        value: uid(256),
-        clientId: authCode.clientId,
-        userId: authCode.userId
-      });
-      
-      // Save the access token and check for errors
-      token.save(function (err) {
-        if (err) { return callback(err); }
-        var enctoken = jwt.encode(token, config.secret);
-        callback(null, enctoken);
-      });
-    });
+  Code.findOne({ where: {value: code} })
+.then(authCode => { 
+ // console.table(authCode)
+  if (authCode === undefined) { return callback(null, false); }
+  if (client.id !== authCode.clientId) { return callback(null, false); }
+  if (redirectUri !== authCode.redirectUri) { return callback(null, false); }
+ // Delete auth code now that it has been used
+ authCode.destroy();
+   // Create a new access token
+   var token = new Token({
+    value: uid(254),
+    clientId: authCode.clientId,
+    userId: authCode.userId
   });
+  token.save().then(() => {
+    var enctoken = jwt.encode(token, config.secret);
+    callback(null, enctoken);
+  }).catch( error => callback(error))
+})
+.catch(error =>  callback(error));
 }));
 
 // User authorization endpoint
 exports.authorization = [
   server.authorization(function(clientId, redirectUri, callback) {
-    Client.findOne({ id: clientId }, function (err, client) {
-      if (err) { return callback(err); }
 
-      return callback(null, client, redirectUri);
-    });
+    Client.findOne({where : { _id: clientId }})
+    .then(client => callback(null, client, redirectUri))
+    .catch(err =>  callback(err) )
   }),
+
   function(req, res){
     console.log(config.userid);
     res.render('dialog', { transactionID: req.oauth2.transactionID, user: config.userid, client: req.oauth2.client });

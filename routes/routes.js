@@ -3,6 +3,7 @@ var actions = require('../methods/actions');
 var auth = require('../methods/auth');
 var clients = require('../methods/client');
 var oauth2 = require('../methods/oauth2');
+var usercontroller = require('../methods/userController');
 
 var router = express.Router();
 

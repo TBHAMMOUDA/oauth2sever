@@ -1,55 +1,58 @@
-var User = require('../model/user');
-var Book = require('../model/book');
+var User = require('../models').User
+var Book = require('../mongomodel/book');
 var config = require('../config/database');
 var jwt = require('jwt-simple');
+const bcrypt = require('bcryptjs');
+
 
 var functions = {
     authenticate: function(req, res) {
-        User.findOne({
-            name: req.body.name
-        }, function(err, user){
-            if (err) throw err;
-            
+       
+
+        User.findOne({ where: {email: req.body.email} })
+        .then(user => { 
             if(!user) {
                 res.status(403).send({success: false, msg: 'Authentication failed, User not found'});
             }
-            
            else {
-                user.comparePassword(req.body.password, function(err, isMatch){
-                    if(isMatch && !err) {
-                        var token = jwt.encode(user, config.secret);
-                        res.json({success: true, token: token});
-                        config.userid = user._id;
-                    } else {
-                        return res.status(403).send({success: false, msg: 'Authenticaton failed, wrong password.'});
-                    }
-                })
-            }
-            
+          bcrypt.compare(req.body.password, user.password, function(err, res_bcrypt) {
+            if(res_bcrypt) {
+                var token = jwt.encode(user, config.secret);
+                res.json({success: true, token: token});
+                config.userid = user.id;         
+            } else {
+            return res.status(403).send({success: false, msg: 'Authenticaton failed, wrong password.'});
+            } 
+          });
+        }
         })
+        .catch(error => res.status(400).send(error));
     },
     addNew: function(req, res){
-        if((!req.body.name) || (!req.body.password)){
-            console.log(req.body.name);
+        if((!req.body.email) || (!req.body.password)){
+            console.log(req.body.email);
             console.log(req.body.password);
             
             res.json({success: false, msg: 'Enter all values'});
         }
         else {
-            var newUser = User({
-                name: req.body.name,
-                password: req.body.password
-            });
-            
-            newUser.save(function(err, newUser){
-                if (err){
-                    res.json({success:false, msg:'Failed to save'})
-                }
-                
-                else {
-                    
-                    res.json({success:true, msg:'Successfully saved'});
-                }
+            bcrypt.hash(req.body.password, 10, function(err, hash) {
+
+                User.findOrCreate(
+                  {  where: {email: req.body.email}, 
+                     defaults: {
+                      firstName: req.body.first_name, 
+                      lastName: req.body.last_name,
+                      email: req.body.email,
+                      password:hash, 
+                     }
+                  }).spread((user, created) => {
+             // console.log(user.get({ plain: true}))
+             // console.log(created)
+             if(created==false)
+              res.status(400).send({message:'Sorry !! this e-mail is associated to an existing account'})
+              res.status(201).send({success:true})
+             })
             })
         }
     },
@@ -57,7 +60,7 @@ var functions = {
         if(req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             var token = req.headers.authorization.split(' ')[1];
             var decodedtoken = jwt.decode(token, config.secret);
-            return res.json({success: true, msg: 'hello '+decodedtoken.name});
+            return res.json({success: true, msg: 'hello '+decodedtoken.firstName+" "+decodedtoken.lastName});
         }
         else {
             return res.json({success:false, msg: 'No header'});
@@ -67,7 +70,7 @@ var functions = {
         var newBook = Book({
             name: req.body.name,
             quantity: req.body.quantity,
-            userId: req.user._id
+            userId: req.user.id
         });
         
         newBook.save(function(err, newBook) {
@@ -78,7 +81,7 @@ var functions = {
         })
     },
     getBooks: function(req, res) {
-        Book.find({ userId: req.user._id }, function(err, books) {
+        Book.find({ userId: req.user.id }, function(err, books) {
     if (err)
       res.send(err);
 

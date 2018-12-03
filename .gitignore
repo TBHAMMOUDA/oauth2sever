@@ -1,5 +1,6 @@
 /node_modules
 /migrations
 /seeders
+/mongomodel
 package-lock.json
 sequelizerc

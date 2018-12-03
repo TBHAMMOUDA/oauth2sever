@@ -28,11 +28,7 @@ mongoose.connection.on('open', function(){
     app.set('view engine', 'ejs');
     app.use(routes);
     app.use(passport.initialize());
-    
-
-
-    
-    
+        
     app.listen(3333, function(){
         console.log('server is running');
     })

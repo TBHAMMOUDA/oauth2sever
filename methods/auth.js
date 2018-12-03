@@ -1,9 +1,9 @@
 var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
-var User = require('../model/user');
-var Client = require('../model/client');
+var User = require('../models').User;
+var Client = require('../models').client;
 var config = require('../config/database');
-var Token = require('../model/token');
+var Token = require('../models').token;
 var JwtBearerStrategy = require('passport-http-jwt-bearer');
 var BasicStrategy = require('passport-http').BasicStrategy;
 
@@ -14,45 +14,38 @@ var BasicStrategy = require('passport-http').BasicStrategy;
     
     
     passport.use(new JwtStrategy(opts, function(jwt_payload, done){
-        User.find({id: jwt_payload.id}, function(err, user){
-            if (err) {
-                return done(err, false);
-            }
-            if (user) {
-                return done(null, user);
-            } else {
-                return done(null, false);
-            }
-        })
+        User.findOne({where : {id: jwt_payload.id}})
+        .then(user =>{ done(null, user)})
+        .catch(error =>    done(error, false));
+
     }));
-    
+
     passport.use('basic-strategy', new BasicStrategy(
   function(username, password, callback) {
-    
-    Client.findOne({ id: username }, function (err, client) {
-      if (err) { return callback(err); }
+    Client.findOne({where : { _id: username }})
+    .then(client => {
+        if (!client || client.secret !== password) { return callback(null, false); }
+        callback(null, client);
+    })
+    .catch(err => callback(err))
 
-      // No client found with that id or bad password
-      if (!client || client.secret !== password) { return callback(null, false); }
-      // Success
-      return callback(null, client);
-    });
   }
 ));
     
     passport.use(new JwtBearerStrategy(
    config.secret,
    function(token, done) {
-     Token.findById(token._id, function (err, user) {
-       
-       if (err) { return done(err); }
-       if (!user) { return done(null, false); }
-     //  console.log(user);
-       return done(null, user, token);
+    Token.find({
+      where: {
+         id: token.id
+      }
+   }).then(function(user) {
+    if (!user) { return done(null, false); }
+    return done(null, user, token);
      });
    }
  ));
- 
+
 exports.isBearerAuthenticated = passport.authenticate('jwt-bearer', {session: false});
 
 exports.isAuthenticated = passport.authenticate(['jwt'], {session: false});
