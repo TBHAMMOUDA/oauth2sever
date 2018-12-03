@@ -3,8 +3,7 @@ A simple nodejs app serving as a backend
 
 ## Getting Started 
 
-These instructions will get you a copy of the project up and running on your local machine
-clone 
+These instructions will get you a copy of the project up and running on your local machine 
 
 ```
 git clone https://github.com/TBHAMMOUDA/oauth2sever.git
