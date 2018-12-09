@@ -119,9 +119,9 @@ getimg: function(req, res) {
                    // TODO handle error
                    res.send(err)
                }
-               console.log(value.result);
                console.log(value);
-               res.send(value.result,"||||",value)
+              // console.log(value);
+               res.send(value)
            };
            qr.decode(image.bitmap);
        });

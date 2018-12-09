@@ -1,4 +1,4 @@
-# oauth2-backend
+# oauth2-backend : nodeJs
 A simple nodejs app serving as a backend
 
 ## Getting Started 
@@ -10,7 +10,7 @@ git clone https://github.com/TBHAMMOUDA/oauth2sever.git
 ```
 ## Install
 
-Run
+Install
 
 ```
 cd oauth2sever

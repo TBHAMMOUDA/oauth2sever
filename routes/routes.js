@@ -21,10 +21,10 @@ router.route('/oauth2/token')
   .post(auth.isClientAuthenticated, oauth2.token);
 
 
-router.post('/saveimg', actions.saveimg);
-router.get('/showimg', actions.showimg);
-router.get('/readimg', actions.readimg);
-router.get('/getimg', auth.isBearerAuthenticated, actions.getimg);
+router.post('/saveimg',auth.isBearerAuthenticated, actions.saveimg);
+router.get('/showimg',auth.isBearerAuthenticated, actions.showimg);
+router.get('/readimg',auth.isBearerAuthenticated, actions.readimg);
+router.get('/getimg',auth.isBearerAuthenticated, actions.getimg);
 
-
+ 
 module.exports = router;

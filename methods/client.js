@@ -10,7 +10,7 @@ exports.postClients = function(req, res) {
   client.name = req.body.name;
   client._id = req.body._id;
   client.secret = req.body.secret;
-  client.userId = req.body.userId;
+  client.userId = req.user.id;
 
 console.log(client);
   // Save the client and check for errors
@@ -22,8 +22,10 @@ console.log(client);
 // Create endpoint /api/clients for GET
 exports.getClients = function(req, res) {
   // Use the Client model to find all clients
-  Client.findAll({ where: {userId: req.query.userId} })
+  Client.findAll({ where: {userId: req.user.id} })
   .then(clients => {  res.json(clients); })
   .catch(error =>  res.send(error))
+
+
 
 };
