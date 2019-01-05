@@ -30,7 +30,7 @@ mongoose.connection.on('open', function(){
     app.use(passport.initialize());
         
     app.listen(3333, function(){
-        console.log('server is running');
+        console.log('server is running on port 3333');
     })
 })
 

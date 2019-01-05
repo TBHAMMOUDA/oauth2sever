@@ -25,7 +25,21 @@ exports.getClients = function(req, res) {
   Client.findAll({ where: {userId: req.user.id} })
   .then(clients => {  res.json(clients); })
   .catch(error =>  res.send(error))
-
-
-
 };
+  exports.deleteClients= function(req, res) {
+
+    Client.findOne({ where: {id: req.params.id} })
+    .then(client => { 
+        if(!client)
+            res.status(403).send({success: false, msg: 'no client'});
+       else  
+       client.destroy({ force: true });
+            res.json({success: true });
+              } 
+     )
+    .catch(error => res.status(400).send(error));
+    
+//   res.json(req.params.id)
+  };
+
+

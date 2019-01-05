@@ -1,10 +1,10 @@
 {
   "development": {
-    "username": "root",
-    "password": "root",
-    "database": "Oauh2server",
-    "host": "127.0.0.1",
-    "port": 32769,
+    "username": "umhmzwkr",
+    "password": "u_Rv4vM9vBRQo0rOQq5DNhgtxrgDX0Jt",
+    "database": "umhmzwkr",
+    "host": "stampy.db.elephantsql.com",
+    "port": 5432,
     "dialect": "postgres"
   },
   "test": {
